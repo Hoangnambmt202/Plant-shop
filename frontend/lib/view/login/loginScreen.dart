@@ -88,7 +88,7 @@ class _LoginScreenState extends State<LoginScreen> {
             SizedBox(height: 16.0),
             TextButton(
               onPressed: () {
-                Get.to(RegisterPage());
+                Get.toNamed('/register');
               },
               child: Text('Don\'t have an account? Register here!'),
             ),

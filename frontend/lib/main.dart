@@ -34,7 +34,7 @@ class MyApp extends StatelessWidget {
             page: () => SplashScreen(), // Màn hình splash ban đầu
           ),
           GetPage(
-            name: '/signUp',
+            name: '/register',
             page: () => RegisterPage(), // Trang đăng ký
           ),
           GetPage(
