@@ -21,7 +21,8 @@ class _SignInState extends ConsumerState<SignIn> {
   final _passwordController = TextEditingController();
   bool _isLoading = false;
 
-  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage(); // Khởi tạo flutter_secure_storage
+  final FlutterSecureStorage _secureStorage =
+      const FlutterSecureStorage(); // Khởi tạo flutter_secure_storage
 
   @override
   void dispose() {
@@ -32,7 +33,8 @@ class _SignInState extends ConsumerState<SignIn> {
 
   // Hàm lưu token vào secure storage
   Future<void> _saveToken(String token) async {
-    await _secureStorage.write(key: 'user_token', value: token); // Lưu token vào Secure Storage
+    await _secureStorage.write(
+        key: 'user_token', value: token); // Lưu token vào Secure Storage
   }
 
   Future<void> _signIn() async {
@@ -50,7 +52,8 @@ class _SignInState extends ConsumerState<SignIn> {
         final user = ref.read(userProvider);
 
         // Lấy token từ provider sau khi đăng nhập thành công
-        const token = 'example_token'; // Bạn cần thay thế bằng token thực tế nhận được từ API
+        const token =
+            'example_token'; // Bạn cần thay thế bằng token thực tế nhận được từ API
 
         // Lưu token vào secure storage
         await _saveToken(token);

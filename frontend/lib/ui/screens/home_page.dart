@@ -152,42 +152,49 @@ class _HomePageState extends State<HomePage> {
               color: Colors.grey[800],
             ),
             Consumer<CartProvider>(
-              builder: (context, cart, _) => Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.shopping_cart_outlined),
-                    onPressed: () => Navigator.pushNamed(context, '/cart'),
-                    color: Colors.grey[800],
-                  ),
-                  if (cart.items.isNotEmpty)
-                    Positioned(
-                      right: 8,
-                      top: 8,
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(
-                          color: Colors.red,
-                          shape: BoxShape.circle,
-                        ),
-                        constraints: const BoxConstraints(
-                          minWidth: 16,
-                          minHeight: 16,
-                        ),
-                        child: Text(
-                          '${cart.items.length}',
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
+              builder: (context, cartProvider, _) {
+                final cart = cartProvider
+                    .state; // Lấy state từ CartProvider, đây là List<Product>
+
+                return Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.shopping_cart_outlined),
+                      onPressed: () => Navigator.pushNamed(context, '/cart'),
+                      color: Colors.grey[800],
+                    ),
+                    if (cart.isNotEmpty) // Sử dụng isNotEmpty trên danh sách
+                      Positioned(
+                        right: 8,
+                        top: 8,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                          ),
+                          constraints: const BoxConstraints(
+                            minWidth: 16,
+                            minHeight: 16,
+                          ),
+                          child: Text(
+                            '${cart.length}', // Sử dụng length trên danh sách
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                ],
-              ),
+                  ],
+                );
+              },
             ),
+
+
           ],
         ),
       ),

@@ -7,7 +7,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 final userProvider = StateProvider<User?>((ref) => null);
 
 // Provider quản lý trạng thái đăng nhập
-final loginProvider = StateNotifierProvider<LoginNotifier, bool>((ref) => LoginNotifier(ref));
+final loginProvider =
+    StateNotifierProvider<LoginNotifier, bool>((ref) => LoginNotifier(ref));
 
 class LoginNotifier extends StateNotifier<bool> {
   final Ref ref;
@@ -30,6 +31,11 @@ class LoginNotifier extends StateNotifier<bool> {
       ApiService.setToken(token); // Cập nhật token cho ApiService
     }
     return token;
+  }
+ 
+// Lấy token từ bộ nhớ
+  Future<String?> getToken() async {
+    return await _secureStorage.read(key: 'auth_token');
   }
 
   // Xóa token khỏi bộ nhớ
@@ -126,7 +132,7 @@ class LoginNotifier extends StateNotifier<bool> {
           id: userData['id'],
           email: userData['email'],
           username: userData['username'],
-          password: "", // Không lưu password
+          password: "", 
           phone: userData['phone'],
           full_name: userData['full_name'] ?? '',
           address: userData['address'],

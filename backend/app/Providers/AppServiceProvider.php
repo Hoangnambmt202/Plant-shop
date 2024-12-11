@@ -10,7 +10,7 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Register any application services.
      */
-    public function register(): void
+    public function register() : void
     {
         //
         // if (file_exists($path = $this->app->environmentPath().'/'.$this->app->environmentFile())) {
@@ -21,11 +21,14 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Bootstrap any application services.
      */
-    public function boot(): void
+    public function boot() : void
     {
         //
         Passport::enablePasswordGrant();
         // Passport::routes();
         Passport::enableImplicitGrant();
+        // Đăng ký route Passport
+
+
     }
 }

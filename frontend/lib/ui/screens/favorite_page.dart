@@ -1,20 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/models/product.dart';
 import 'package:frontend/providers/favorite_provider.dart';
 import 'package:frontend/ui/screens/detail_page.dart';
 import 'package:intl/intl.dart';
 import 'package:page_transition/page_transition.dart';
 
-class FavoritePage extends StatelessWidget {
-  FavoritePage({super.key});
-
+class FavoritePage extends ConsumerWidget {
   final formatCurrency = NumberFormat.currency(locale: 'vi_VN', symbol: 'đ');
 
   @override
-  Widget build(BuildContext context) {
-    final favoriteProvider = Provider.of<FavoriteProvider>(context);
-    final favoritedPlants = favoriteProvider.favorites;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final favoritedPlants = ref.watch(favoriteProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -24,10 +21,10 @@ class FavoritePage extends StatelessWidget {
           ? _buildEmptyState()
           : RefreshIndicator(
               onRefresh: () async {
-                // // Nếu cần tải lại danh sách yêu thích từ server
-                // await favoriteProvider.refreshFavorites();
+                // Nếu cần tải lại danh sách yêu thích từ server
+                // await ref.read(favoriteProvider.notifier).refreshFavorites();
               },
-              child: _buildFavoriteList(favoritedPlants, context),
+              child: _buildFavoriteList(favoritedPlants, context, ref),
             ),
     );
   }
@@ -64,12 +61,14 @@ class FavoritePage extends StatelessWidget {
     );
   }
 
-  Widget _buildFavoriteList(List<Product> favoritedPlants, BuildContext context) {
+  Widget _buildFavoriteList(
+      List<Product> favoritedPlants, BuildContext context, WidgetRef ref) {
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: favoritedPlants.length,
       itemBuilder: (context, index) {
         final product = favoritedPlants[index];
+
         return Dismissible(
           key: Key(product.id.toString()),
           direction: DismissDirection.endToStart,
@@ -83,8 +82,7 @@ class FavoritePage extends StatelessWidget {
             child: const Icon(Icons.delete, color: Colors.white),
           ),
           onDismissed: (direction) {
-            Provider.of<FavoriteProvider>(context, listen: false)
-                .removeFavorite(product);
+            ref.read(favoriteProvider.notifier).removeFavorite(product);
           },
           child: Container(
             margin: const EdgeInsets.only(bottom: 16),
@@ -136,10 +134,8 @@ class FavoritePage extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: product.isSold == 1
                           ? Colors.green.withOpacity(0.1)
@@ -160,8 +156,7 @@ class FavoritePage extends StatelessWidget {
               trailing: IconButton(
                 icon: const Icon(Icons.favorite, color: Colors.red),
                 onPressed: () {
-                  Provider.of<FavoriteProvider>(context, listen: false)
-                      .removeFavorite(product);
+                  ref.read(favoriteProvider.notifier).removeFavorite(product);
                 },
               ),
               onTap: () {

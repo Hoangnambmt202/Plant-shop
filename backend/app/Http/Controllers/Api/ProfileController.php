@@ -18,6 +18,12 @@ class ProfileController extends Controller
 
 
     }
+    public function index()
+    {
+        return response()->json([
+            'data' => User::all(),
+        ]);
+    }
     public function order()
     {
         $data['detail']     = \App\Models\SettingDetail::find(1);

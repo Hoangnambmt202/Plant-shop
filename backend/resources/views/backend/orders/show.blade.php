@@ -22,7 +22,7 @@
                                         {{$order->created_at!=$order->updated_at?"Điều chỉnh: ".$order->updated_at:""}}
                                     </div>
                                     </td>
-                             
+                        
                                     <?php $detail = \App\Models\SettingDetail::find(1); ?>
                                     <td style="width: 50%; vertical-align:top" class="text-center">
                                     <div class="text-primary font-semibold text-3xl">{{$detail->company_name}} </div>
