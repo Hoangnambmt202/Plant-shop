@@ -4,20 +4,20 @@ import 'package:frontend/ui/screens/cart_page.dart';
 import 'package:frontend/ui/screens/favorite_page.dart';
 import 'package:frontend/ui/screens/home_page.dart';
 import 'package:frontend/ui/screens/profile_page.dart';
-import 'package:frontend/ui/screens/widgets/base_scaff.dart';  
+import 'package:frontend/ui/screens/widgets/base_scaff.dart';
 import 'package:frontend/models/product.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/providers/cart_provider.dart';
 import 'package:http/http.dart' as http;
-import 'package:provider/provider.dart';
 
-class RootPage extends StatefulWidget {
+class RootPage extends ConsumerStatefulWidget {
   const RootPage({super.key});
 
   @override
-  State<RootPage> createState() => _RootPageState();
+  ConsumerState<RootPage> createState() => _RootPageState();
 }
 
-class _RootPageState extends State<RootPage> {
+class _RootPageState extends ConsumerState<RootPage> {
   List<Product> _products = [];
   List<Product> _favorites = [];
   int _selectedIndex = 0;
@@ -28,13 +28,15 @@ class _RootPageState extends State<RootPage> {
   @override
   void initState() {
     super.initState();
-    _loadInitialData();
-    Provider.of<CartProvider>(context, listen: false).loadCart();
+    Future.microtask(() {
+      ref.read(cartProvider.notifier).loadCart();
+      _loadInitialData();
+    });
   }
 
   Future<void> _loadInitialData() async {
     setState(() => _isLoading = true);
-    
+
     try {
       await Future.wait([_loadProducts(), _loadFavoriteProducts()]);
     } catch (e) {
@@ -53,18 +55,13 @@ class _RootPageState extends State<RootPage> {
         if (data['success'] == true && data['products'] != null) {
           setState(() {
             _products = List<Product>.from(
-              data['products'].map((json) => Product.fromJson(json))
+              data['products'].map((json) => Product.fromJson(json)),
             );
           });
-        } else {
-          setState(() => _products = []);
         }
-      } else {
-        throw Exception('Failed to load products');
       }
     } catch (e) {
       print('Error loading products: $e');
-      setState(() => _products = []);
     }
   }
 
@@ -77,18 +74,13 @@ class _RootPageState extends State<RootPage> {
         if (data['success'] == true && data['products'] != null) {
           setState(() {
             _favorites = List<Product>.from(
-              data['products'].map((json) => Product.fromJson(json))
+              data['products'].map((json) => Product.fromJson(json)),
             );
           });
-        } else {
-          setState(() => _favorites = []);
         }
-      } else {
-        throw Exception('Failed to load favorites');
       }
     } catch (e) {
       print('Error loading favorites: $e');
-      setState(() => _favorites = []);
     }
   }
 
@@ -109,18 +101,25 @@ class _RootPageState extends State<RootPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Define the appBar here instead of in BaseScaffold
+    final cart = ref.watch(cartProvider);
+
     final AppBar appBar = AppBar(
-      title: Text(_selectedIndex == 0 ? 'Trang chủ' : 
-                   _selectedIndex == 1 ? 'Yêu thích' : 
-                   _selectedIndex == 2 ? 'Giỏ hàng' : 'Tài khoản'),
+      title: Text(
+        _selectedIndex == 0
+            ? 'Trang chủ'
+            : _selectedIndex == 1
+                ? 'Yêu thích'
+                : _selectedIndex == 2
+                    ? 'Giỏ hàng (${cart.length})'
+                    : 'Tài khoản',
+      ),
       centerTitle: true,
     );
 
     return BaseScaffold(
       currentIndex: _selectedIndex,
       onIndexChanged: (index) => setState(() => _selectedIndex = index),
-      appBar: appBar,  // Pass appBar to BaseScaffold
+      appBar: appBar,
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _buildCurrentPage(),

@@ -129,9 +129,10 @@ class Product {
       brandId: json['brand_id'],
       catId: json['cat_id'],
       parentCatId: json['parent_cat_id'],
-      photos: json['photo'] != null && json['photo'] is List
+    photos: json['photo'] != null && json['photo'] is List
           ? List<String>.from(json['photo'])
           : [],
+
       size: json['size'],
       weight: json['weight'],
       expired: json['expired'],
@@ -146,9 +147,10 @@ class Product {
           ? DateTime.parse(json['updated_at'])
           : DateTime.now(),
       isFavorite: json['is_favorite'] ?? false,
-      quantity: json['quantity'] ?? 1, // Default quantity from JSON is 1
+      quantity: json['quantity'] ?? 1,
     );
   }
+
 
   // Method to convert the `Product` to JSON
   Map<String, dynamic> toJson() {

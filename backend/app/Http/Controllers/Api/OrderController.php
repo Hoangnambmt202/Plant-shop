@@ -1,6 +1,6 @@
 <?php
 namespace App\Http\Controllers\Api;
-
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Order;
@@ -9,6 +9,30 @@ use App\Models\Product;
 
 class OrderController extends Controller
 {
+    public function index(Request $request)
+    {
+        $user = Auth::user();
+
+        if (! $user)
+        {
+            return response()->json(['message' => 'Không tìm thấy người dùng'], 401);
+        }
+
+        try
+        {
+            $orders = Order::where('user_id', $user->id)
+                ->with('orderDetails.product')
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            return response()->json(['orders' => $orders]);
+
+        } catch (\Exception $e)
+        {
+            return response()->json(['error' => $e->getMessage()]);
+        }
+    }
+
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -50,5 +74,19 @@ class OrderController extends Controller
         }
 
         return response()->json(['success' => true, 'order' => $order], 200);
+    }
+    public function getOrders(Request $request)
+    {
+        // Xác thực người dùng (Passport)
+        $user = $request->user();
+
+        // Lấy danh sách đơn hàng của user
+        $orders = Order::where('user_id', $user->id)->get();
+
+        // Trả về kết quả
+        return response()->json([
+            'success' => true,
+            'orders'  => $orders,
+        ]);
     }
 }

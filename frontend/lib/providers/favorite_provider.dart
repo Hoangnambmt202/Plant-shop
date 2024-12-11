@@ -1,25 +1,27 @@
-import 'package:flutter/material.dart';
+// lib/providers/favorite_provider.dart
+
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/models/product.dart';
 
-class FavoriteProvider with ChangeNotifier {
-  final List<Product> _favorites = [];
+final favoriteProvider = StateNotifierProvider<FavoriteNotifier, List<Product>>(
+  (ref) => FavoriteNotifier(),
+);
 
-  List<Product> get favorites => _favorites;
+class FavoriteNotifier extends StateNotifier<List<Product>> {
+  FavoriteNotifier() : super([]);
 
   bool isFavorite(Product product) {
-    return _favorites.any((p) => p.id == product.id);
+    return state.any((p) => p.id == product.id);
   }
 
   void addFavorite(Product product) {
     if (!isFavorite(product)) {
-      _favorites.add(product);
-      notifyListeners();
+      state = [...state, product];
     }
   }
 
   void removeFavorite(Product product) {
-    _favorites.removeWhere((p) => p.id == product.id);
-    notifyListeners();
+    state = state.where((p) => p.id != product.id).toList();
   }
 
   void toggleFavorite(Product product) {

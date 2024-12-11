@@ -76,7 +76,7 @@ ElevatedButton(
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => const EditProfileScreen(),
+        builder: (context) => const MyProfile(),
       ),
     );
   },

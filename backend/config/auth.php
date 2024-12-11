@@ -13,8 +13,8 @@ return [
     |
     */
 
-    'defaults' => [
-        'guard' => 'web',
+    'defaults'         => [
+        'guard'     => 'web',
         'passwords' => 'users',
     ],
 
@@ -35,17 +35,18 @@ return [
     |
     */
 
-    'guards' => [
+    'guards'           => [
         'web' => [
-            'driver' => 'session',
+            'driver'   => 'session',
             'provider' => 'users',
         ],
         'api' => [
-            'driver' => 'passport',
+            'driver'   => 'passport',
             'provider' => 'users',
+
         ],
     ],
-   
+
     /*
     |--------------------------------------------------------------------------
     | User Providers
@@ -63,10 +64,10 @@ return [
     |
     */
 
-    'providers' => [
+    'providers'        => [
         'users' => [
             'driver' => 'eloquent',
-            'model' => App\Models\User::class,
+            'model'  => App\Models\User::class,
         ],
 
         // 'users' => [
@@ -93,14 +94,14 @@ return [
     | quickly generating a very large amount of password reset tokens.
     |
     */
-'passwords' => [
-    'users' => [
-        'provider' => 'users',
-        'table' => 'password_resets',
-        'expire' => 60, // Thời gian hết hạn token (phút)
-        'throttle' => 60, // Thời gian chờ giữa các lần gửi email (giây)
+    'passwords'        => [
+        'users' => [
+            'provider' => 'users',
+            'table'    => 'password_resets',
+            'expire'   => 60, // Thời gian hết hạn token (phút)
+            'throttle' => 60, // Thời gian chờ giữa các lần gửi email (giây)
+        ],
     ],
-],
     /*
     |--------------------------------------------------------------------------
     | Password Confirmation Timeout

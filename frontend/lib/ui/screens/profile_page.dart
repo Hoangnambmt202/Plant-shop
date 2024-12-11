@@ -4,7 +4,6 @@ import 'package:frontend/constants.dart';
 import 'package:frontend/providers/loginProvider.dart';
 import 'package:frontend/ui/screens/widgets/profile_widget.dart';
 import 'package:frontend/ui/screens/myProfile_page.dart'; // Import trang MyProfile
-import 'package:frontend/providers/auth_provider.dart'; // Import AuthService
 import 'package:frontend/ui/screens/signin_page.dart'; // Import màn hình đăng nhập
 
 class ProfilePage extends ConsumerWidget {
@@ -122,7 +121,7 @@ class ProfilePage extends ConsumerWidget {
                       title: 'Đăng xuất',
                       onTap: () async {
                         // Gọi phương thức logout từ AuthProvider
-                        await ref.read(authProvider.notifier).logout();
+                        await ref.read(loginProvider.notifier).logout();
                         // Thực hiện điều hướng về màn hình đăng nhập và reload lại trang ProfilePage
                         Navigator.pushAndRemoveUntil(
                           context,

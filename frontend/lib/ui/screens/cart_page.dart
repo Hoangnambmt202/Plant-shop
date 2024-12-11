@@ -1,155 +1,158 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:frontend/providers/cart_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:frontend/ui/screens/checkout_page.dart'; // Đảm bảo rằng bạn đã import CheckoutPage
+import 'package:frontend/models/product.dart';
+import 'package:frontend/providers/cart_provider.dart';
+import 'package:frontend/ui/screens/checkout_page.dart';
 
-class CartPage extends StatelessWidget {
+class CartPage extends ConsumerWidget {
   const CartPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final formatCurrency = NumberFormat.currency(locale: 'vi_VN', symbol: 'đ');
+    final cartItems = ref.watch(cartProvider);
+    final isLoading = ref.watch(cartProvider.notifier).isLoading;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Giỏ hàng'),
       ),
-      body: Consumer<CartProvider>(  // Dùng Consumer để lấy trạng thái giỏ hàng từ CartProvider
-        builder: (context, cart, child) {
-          // Nếu đang tải dữ liệu, hiển thị CircularProgressIndicator
-          if (cart.isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          // Nếu giỏ hàng trống, hiển thị thông báo
-          if (cart.items.isEmpty) {
-            return const Center(child: Text('Giỏ hàng trống'));
-          }
-
-          return Column(
-            children: [
-              Expanded(
-                child: ListView.builder(
-                  itemCount: cart.items.length,
-                  itemBuilder: (context, index) {
-                    final product = cart.items[index];
-                    return Card(
-                      margin: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
-                      child: ListTile(
-                        leading: Image.network(
-                          product.photos.first,
-                          width: 50,
-                          height: 50,
-                          fit: BoxFit.cover,
-                        ),
-                        title: Text(product.title),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(formatCurrency.format(product.price)),
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                IconButton(
-                                  icon: const Icon(Icons.remove),
-                                  onPressed: () {
-                                    if (product.quantity > 1) {
-                                      cart.updateQuantity(
-                                          product, product.quantity - 1);
-                                    }
-                                  },
-                                ),
-                                Text(
-                                  '${product.quantity}',
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.add),
-                                  onPressed: () {
-                                    cart.updateQuantity(
-                                        product, product.quantity + 1);
-                                  },
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.delete),
-                          onPressed: () => cart.removeFromCart(product),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-              // Phần tổng tiền và nút thanh toán
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.2),
-                      spreadRadius: 1,
-                      blurRadius: 5,
-                      offset: const Offset(0, -3),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : cartItems.isEmpty
+              ? const Center(child: Text('Giỏ hàng trống'))
+              : Column(
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Tổng tiền:',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey,
-                          ),
-                        ),
-                        Text(
-                          formatCurrency.format(cart.totalAmount),
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                    // Nút thanh toán
-                    ElevatedButton(
-                      onPressed: () {
-                        // Chuyển đến trang checkout khi người dùng nhấn nút thanh toán
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => CheckoutPage(),
-                          ),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 32,
-                          vertical: 12,
-                        ),
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: cartItems.length,
+                        itemBuilder: (context, index) {
+                          final product = cartItems[index];
+
+                          return Card(
+                            margin: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 8),
+                            child: ListTile(
+                              leading: Image.network(
+                                product.photos.isNotEmpty
+                                    ? product.photos.first
+                                    : 'https://example.com/placeholder.png',
+                                width: 50,
+                                height: 50,
+                                fit: BoxFit.cover,
+                              ),
+                              title: Text(product.title),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(formatCurrency.format(product.price)),
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    children: [
+                                      IconButton(
+                                        icon: const Icon(Icons.remove),
+                                        onPressed: () {
+                                          if (product.quantity > 1) {
+                                            ref
+                                                .read(cartProvider.notifier)
+                                                .updateQuantity(product,
+                                                    product.quantity - 1);
+                                          }
+                                        },
+                                      ),
+                                      Text(
+                                        '${product.quantity}',
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(Icons.add),
+                                        onPressed: () {
+                                          ref
+                                              .read(cartProvider.notifier)
+                                              .updateQuantity(product,
+                                                  product.quantity + 1);
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                              trailing: IconButton(
+                                icon: const Icon(Icons.delete),
+                                onPressed: () async {
+                                  bool result = await ref
+                                      .read(cartProvider.notifier)
+                                      .removeFromCart(product);
+                                  if (result) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content:
+                                            Text('Đã xoá ${product.title}'),
+                                      ),
+                                    );
+                                  }
+                                },
+                              ),
+                            ),
+                          );
+                        },
                       ),
-                      child: const Text('Thanh toán'),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.2),
+                            spreadRadius: 1,
+                            blurRadius: 5,
+                            offset: const Offset(0, -3),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Tổng tiền:',
+                                style:
+                                    TextStyle(fontSize: 14, color: Colors.grey),
+                              ),
+                              Text(
+                                formatCurrency.format(ref
+                                    .read(cartProvider.notifier)
+                                    .totalAmount),
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                          ElevatedButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => CheckoutPage(),
+                                ),
+                              );
+                            },
+                            child: const Text('Thanh toán'),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
-              ),
-            ],
-          );
-        },
-      ),
     );
   }
 }

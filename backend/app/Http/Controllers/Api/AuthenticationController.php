@@ -105,6 +105,7 @@ class AuthenticationController extends Controller
     /**
      * Login user
      */
+<<<<<<< HEAD
     public function store(Request $request)
     {
         try
@@ -363,6 +364,272 @@ class AuthenticationController extends Controller
                 ], 400);
             }
 
+=======
+    // public function login(Request $request)
+    // {
+    //     try
+    //     {
+    //         $request->validate([
+    //             'email'    => 'email|required',
+    //             'password' => 'required',
+    //         ]);
+
+    //         $credentials = request(['email', 'password']);
+
+    //         if (! Auth::attempt($credentials))
+    //         {
+    //             return response()->json([
+    //                 'status_code' => 500,
+    //                 'message'     => 'Unauthorized',
+    //             ]);
+    //         }
+
+    //         $user = User::where('email', $request->email)->first();
+
+    //         if (! Hash::check($request->password, $user->password, []))
+    //         {
+    //             throw new \Exception('Error in Login');
+    //         }
+
+    //         $tokenResult = $user->createToken('authToken')->plainTextToken;
+
+    //         return response()->json([
+    //             'status_code'  => 200,
+    //             'access_token' => $tokenResult,
+    //             'token_type'   => 'Bearer',
+    //         ]);
+    //     } catch (\Exception $error)
+    //     {
+    //         return response()->json([
+    //             'status_code' => 500,
+    //             'message'     => 'Error in Login',
+    //             'error'       => $error,
+    //         ]);
+    //     }
+    // }
+
+    public function login(Request $request)
+    {
+        try
+        {
+            $request->validate([
+                'email'    => 'email|required',
+                'password' => 'required',
+            ]);
+            $credentials = request(['email', 'password']);
+            if (! Auth::attempt($credentials))
+            {
+                return response()->json([
+                    'status_code' => 500,
+                    'message'     => 'Unauthorized',
+                ]);
+            }
+            $user = User::where('email', $request->email)->first();
+            if (! Hash::check($request->password, $user->password, []))
+            {
+                throw new \Exception('Error in Login');
+            }
+            $tokenResult = $user->createToken('authToken')->plainTextToken;
+            return response()->json([
+                'status_code'  => 200,
+                'access_token' => $tokenResult,
+                'token_type'   => 'Bearer',
+            ]);
+        } catch (Exception $error)
+        {
+            return response()->json([
+                'status_code' => 500,
+                'message'     => 'Error in Login',
+                'error'       => $error,
+            ]);
+        }
+    }
+    /**
+     * Logout user 
+     */
+    public function destroy(Request $request)
+    {
+        try
+        {
+            if (Auth::check())
+            {
+                // Revoke token
+                $request->user()->token()->revoke();
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Đăng xuất thành công',
+                ], 200);
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Người dùng chưa đăng nhập',
+            ], 401);
+
+        } catch (\Exception $e)
+        {
+            \Log::error('Logout error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Đăng xuất thất bại',
+                'error'   => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Send password reset link
+     */
+    public function forgotPassword(Request $request)
+    {
+        try
+        {
+            $validator = Validator::make($request->all(), [
+                'email' => 'required|email|exists:users,email',
+            ], [
+                'email.required' => 'Vui lòng nhập email',
+                'email.email'    => 'Email không đúng định dạng',
+                'email.exists'   => 'Email không tồn tại trong hệ thống',
+            ]);
+
+            if ($validator->fails())
+            {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Vui lòng kiểm tra lại email',
+                    'errors'  => $validator->errors(),
+                ], 422);
+            }
+
+            // Generate reset token
+            $token = Password::createToken(User::where('email', $request->email)->first());
+
+            // Send reset link email
+            $status = Password::sendResetLink($request->only('email'));
+
+            if ($status === Password::RESET_LINK_SENT)
+            {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Email khôi phục mật khẩu đã được gửi',
+                ]);
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Không thể gửi email khôi phục mật khẩu',
+            ], 400);
+
+        } catch (\Exception $e)
+        {
+            \Log::error('Forgot password error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Có lỗi xảy ra, vui lòng thử lại sau',
+                'error'   => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Reset password
+     */
+    public function resetPassword(Request $request)
+    {
+        try
+        {
+            $validator = Validator::make($request->all(), [
+                'token'    => 'required',
+                'email'    => 'required|email',
+                'password' => 'required|min:8|confirmed',
+            ]);
+
+            if ($validator->fails())
+            {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Vui lòng kiểm tra lại thông tin',
+                    'errors'  => $validator->errors(),
+                ], 422);
+            }
+
+            $status = Password::reset(
+                $request->only('email', 'password', 'password_confirmation', 'token'),
+                function ($user, $password) {
+                    $user->forceFill([
+                        'password' => Hash::make($password),
+                    ])->setRememberToken(Str::random(60));
+
+                    $user->save();
+
+                    event(new PasswordReset($user));
+                }
+            );
+
+            if ($status === Password::PASSWORD_RESET)
+            {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Mật khẩu đã được cập nhật',
+                ]);
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Không thể cập nhật mật khẩu',
+            ], 400);
+
+        } catch (\Exception $e)
+        {
+            \Log::error('Reset password error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Có lỗi xảy ra, vui lòng thử lại sau',
+                'error'   => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Change password for logged in user
+     */
+    public function changePassword(Request $request)
+    {
+        try
+        {
+            $validator = Validator::make($request->all(), [
+                'current_password' => 'required',
+                'password'         => 'required|string|min:8|confirmed|different:current_password',
+            ], [
+                'current_password.required' => 'Vui lòng nhập mật khẩu hiện tại',
+                'password.required'         => 'Vui lòng nhập mật khẩu mới',
+                'password.min'              => 'Mật khẩu mới phải có ít nhất 8 ký tự',
+                'password.confirmed'        => 'Xác nhận mật khẩu không khớp',
+                'password.different'        => 'Mật khẩu mới phải khác mật khẩu hiện tại',
+            ]);
+
+            if ($validator->fails())
+            {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Vui lòng kiểm tra lại thông tin',
+                    'errors'  => $validator->errors(),
+                ], 422);
+            }
+
+            $user = Auth::user();
+
+            // Verify current password
+            if (! Hash::check($request->current_password, $user->password))
+            {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Mật khẩu hiện tại không đúng',
+                ], 400);
+            }
+
+>>>>>>> 405027aa29e047be37219131c9f90092fc5a9357
             // Update password
             $user->password = Hash::make($request->password);
             $user->save();
